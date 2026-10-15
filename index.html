@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>План доделок ремонта</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow work column, rooms as sections in walk-through order; phase chips filter across rooms. Colours borrowed from the flat itself: plum corridor, green accent wall, plaster neutrals. */
+:root{
+  --bg:#f5f3ef; --surface:#fcfbf8; --line:#e2ddd4; --fg:#26221f; --muted:#776f66;
+  --plum:#6d2b3d; --plum-soft:#f1e3e6; --green:#3f5d4a; --green-soft:#e2ebe3;
+  --ask:#9a6a12; --ask-soft:#f6ecd6;
+  --display:"Unbounded", "Arial Black", system-ui, sans-serif;
+  --body:"Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1a1817; --surface:#221f1d; --line:#38332f; --fg:#ece6df; --muted:#a39a90;
+  --plum:#d58a9c; --plum-soft:#3a2329; --green:#8fb79a; --green-soft:#24302a;
+  --ask:#e2b45a; --ask-soft:#352b18; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1a1817; --surface:#221f1d; --line:#38332f; --fg:#ece6df; --muted:#a39a90;
+  --plum:#d58a9c; --plum-soft:#3a2329; --green:#8fb79a; --green-soft:#24302a;
+  --ask:#e2b45a; --ask-soft:#352b18; color-scheme:dark }
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body)}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-direction:column;gap:10px}
+h1{font:600 clamp(22px,4.6vw,30px)/1.15 var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0;max-width:62ch}
+.meter{display:flex;align-items:center;gap:12px;font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green);width:0;transition:width .3s}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font:500 12.5px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:5px 11px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+section.room{display:flex;flex-direction:column;gap:2px}
+.rhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--fg)}
+.rhead h2{font:500 16px/1.3 var(--display);margin:0}
+.rhead .cnt{font:500 12.5px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rnote{font-size:13px;color:var(--muted);margin:6px 0 2px}
+ul{list-style:none;margin:0;padding:0}
+li.task{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+li.task input[type=checkbox]{width:18px;height:18px;margin:2px 0 0;accent-color:var(--green);cursor:pointer}
+.tbody{min-width:0;display:flex;flex-direction:column;gap:3px}
+.ttl{font-weight:500}
+li.done .ttl{text-decoration:line-through;color:var(--muted);font-weight:400}
+.note{font-size:13px;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.tag{font:500 11px var(--mono);padding:1px 7px;border-radius:4px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.tag.voice{background:var(--plum-soft);border-color:transparent;color:var(--plum)}
+.tag.ask{background:var(--ask-soft);border-color:transparent;color:var(--ask)}
+.tag.pickup{background:var(--green-soft);border-color:transparent;color:var(--green)}
+.tagedit{font:500 11px var(--mono);padding:1px 7px;border-radius:4px;border:1px dashed var(--line);background:none;color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s}
+li.task:hover .tagedit,li.task:focus-within .tagedit,.tagedit[aria-expanded="true"]{opacity:1}
+@media (hover:none){.tagedit{opacity:.7}}
+.tagpanel{display:flex;flex-direction:column;gap:8px;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.tagpanel .grp{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.tagpanel .lbl{font-size:12px;color:var(--muted);min-width:52px}
+.tagpanel .chip{font-size:12px;padding:3px 9px}
+.tagpanel .chip.ask[aria-pressed="true"]{background:var(--ask-soft);color:var(--ask);border-color:var(--ask)}
+.tagpanel .chip.pickup[aria-pressed="true"]{background:var(--green-soft);color:var(--green);border-color:var(--green)}
+.tagpanel .close{align-self:flex-start;font:500 12px var(--body);border:0;background:none;color:var(--plum);cursor:pointer;padding:0}
+.del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;opacity:.45}
+.del:hover{opacity:1;color:var(--plum)}
+form.add{display:flex;gap:8px;padding-top:10px}
+form.add input{flex:1;min-width:0;font:14px var(--body);padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
+form.add button{font:500 13px var(--body);padding:8px 12px;border-radius:6px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;white-space:nowrap}
+.empty{padding:28px 18px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center}
+.status{font-size:12.5px;color:var(--muted)}
+.hidden-by-filter{display:none}
+[contenteditable="true"]{border-radius:4px;padding:1px 4px;margin:-1px -4px;cursor:text;outline:none;transition:background .15s}
+[contenteditable="true"]:hover{background:var(--bg)}
+[contenteditable="true"]:focus{background:var(--surface);box-shadow:0 0 0 2px var(--plum)}
+.note[contenteditable="true"]:empty::before{content:"Добавить заметку";color:var(--muted);opacity:.6}
+li.task .note:empty:not(:focus){display:none}
+li.task:hover .note:empty,li.task:focus-within .note:empty{display:block}
+.saved{font:500 11px var(--mono);color:var(--green)}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+
+:root{--eng-bg:#e3ebf5;--eng-fg:#2f5a8a;--walls-bg:#f6e6da;--walls-fg:#9a4f1d;--tile-bg:#dcefee;--tile-fg:#1f6b68;--elec-bg:#f7efcc;--elec-fg:#7d6410;--plumb-bg:#e8e2f4;--plumb-fg:#5b3f8f;--finish-bg:#f3e1e6;--finish-fg:#8a3550;--video-bg:#e7e9ec;--video-fg:#4c5560;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--eng-bg:#1f2a38;--eng-fg:#8fb3dc;--walls-bg:#3a2a1f;--walls-fg:#e0a273;--tile-bg:#1c3332;--tile-fg:#7cc9c4;--elec-bg:#353016;--elec-fg:#e3c75a;--plumb-bg:#2b2438;--plumb-fg:#b9a2e3;--finish-bg:#3a2329;--finish-fg:#e29ab0;--video-bg:#2a2e33;--video-fg:#aab3bd;}}
+:root[data-theme="dark"]{--eng-bg:#1f2a38;--eng-fg:#8fb3dc;--walls-bg:#3a2a1f;--walls-fg:#e0a273;--tile-bg:#1c3332;--tile-fg:#7cc9c4;--elec-bg:#353016;--elec-fg:#e3c75a;--plumb-bg:#2b2438;--plumb-fg:#b9a2e3;--finish-bg:#3a2329;--finish-fg:#e29ab0;--video-bg:#2a2e33;--video-fg:#aab3bd;}
+.tag[class*="ph-"],.tag.video{border-color:transparent}
+.tag.ph-eng{background:var(--eng-bg);color:var(--eng-fg)}
+.tag.ph-walls{background:var(--walls-bg);color:var(--walls-fg)}
+.tag.ph-tile{background:var(--tile-bg);color:var(--tile-fg)}
+.tag.ph-elec{background:var(--elec-bg);color:var(--elec-fg)}
+.tag.ph-plumb{background:var(--plumb-bg);color:var(--plumb-fg)}
+.tag.ph-finish{background:var(--finish-bg);color:var(--finish-fg)}
+.tag.video{background:var(--video-bg);color:var(--video-fg)}
+.importbox{display:flex;flex-direction:column;gap:10px;padding:18px;border:1px dashed var(--line);border-radius:8px;color:var(--muted)}
+.importbox p{margin:0}
+.importbtn{align-self:flex-start;font:500 13px var(--body);padding:8px 12px;border-radius:6px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
+#rooms{display:flex;flex-direction:column;gap:44px}
+.rhead{padding-top:4px}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>План доделок ремонта</h1>
+    <p class="sub">Что осталось после ухода подрядчика, по комнатам в порядке обхода с видео. Название и заметку можно исправить кликом: Enter сохраняет, Esc отменяет.</p>
+    <div class="meter"><span id="done">0 / 0</span><div class="bar"><i id="fill"></i></div><span id="pct">0%</span></div>
+  </header>
+
+  <div class="filters" id="filters" role="toolbar" aria-label="Фильтр по этапам"></div>
+  <div class="legend">
+    <span>Этапы идут в порядке выполнения: сначала инженерка, потом стены и плитка, в конце финиш.</span>
+  </div>
+
+  <main id="rooms"><div class="empty" id="placeholder">Загружаю задачи…</div></main>
+  <p class="status" id="status"></p>
+  <div class="importbox" id="importbox" hidden><p>Список пока пустой. Загрузи файл с задачами (tasks.json), это нужно сделать один раз.</p><label class="importbtn">Загрузить tasks.json<input type="file" id="importfile" accept=".json,application/json" hidden></label></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script>
+const ROOMS=[
+  {id:"vendor",name:"Забрать у подрядчика",note:"Оплачено, но на объекте нет. Лучше закрыть до подписания акта о расторжении."},
+  {id:"hall",name:"Прихожая и коридор"},
+  {id:"green",name:"Гостиная"},
+  {id:"loggia1",name:"Лоджия при гостиной"},
+  {id:"bedroom",name:"Спальня"},
+  {id:"bath",name:"Санузел"},
+  {id:"kitchen",name:"Кухня-гостиная"},
+  {id:"loggia2",name:"Лоджия при кухне"}
+];
+const PHASES=[
+  ["eng","1 · Инженерка"],["walls","2 · Стены"],["tile","3 · Плитка"],
+  ["elec","4 · Электрика"],["plumb","5 · Сантехника"],["finish","6 · Финиш"]
+];
+const PH=Object.fromEntries(PHASES);
+let tasks=[], filter="all", onlyOpen=false, db=null, canWrite=true, loading=true;
+const $=s=>document.querySelector(s);
+
+function renderFilters(){
+  const f=$("#filters"); f.textContent="";
+  const mk=(id,label,pressed,on)=>{const b=document.createElement("button");b.className="chip";b.type="button";b.id="f-"+id;b.textContent=label;b.setAttribute("aria-pressed",pressed);b.onclick=on;f.appendChild(b)};
+  mk("all","Все этапы",filter==="all",()=>{filter="all";render()});
+  PHASES.forEach(([k,l])=>mk(k,l,filter===k,()=>{filter=k;render()}));
+  const s=document.createElement("span");s.className="sep";f.appendChild(s);
+  mk("open","Только открытые",onlyOpen,()=>{onlyOpen=!onlyOpen;render()});
+}
+
+function render(){
+  if(editing){pending=true;return}
+  renderFilters();
+  const total=tasks.length, done=tasks.filter(t=>t.done).length;
+  $("#done").textContent=done+" / "+total+" сделано";
+  const p=total?Math.round(done/total*100):0; $("#pct").textContent=p+"%"; $("#fill").style.width=p+"%";
+  const root=$("#rooms"); root.textContent="";
+  if(!total&&loading){const e=document.createElement("div");e.className="empty";e.textContent="Загружаю задачи…";root.appendChild(e);return}
+  if(!total){const e=document.createElement("div");e.className="empty";e.textContent=db?"Задач пока нет. Добавь первую в любой комнате ниже.":"Задачи не загрузились: хранилище недоступно в этом просмотре.";root.appendChild(e); if(!db) return;}
+  ROOMS.forEach(r=>{
+    const all=tasks.filter(t=>t.room===r.id).sort((a,b)=>(a.order??999)-(b.order??999));
+    const vis=all.filter(t=>(filter==="all"||t.phase===filter)&&(!onlyOpen||!t.done));
+    if(!vis.length&&(filter!=="all"||onlyOpen)) return;
+    const sec=document.createElement("section");sec.className="room";
+    const h=document.createElement("div");h.className="rhead";
+    const h2=document.createElement("h2");h2.textContent=r.name;
+    const c=document.createElement("span");c.className="cnt";c.textContent=all.filter(t=>t.done).length+"/"+all.length;
+    h.append(h2,c);sec.appendChild(h);
+    if(r.note){const n=document.createElement("p");n.className="rnote";n.textContent=r.note;sec.appendChild(n)}
+    const ul=document.createElement("ul");
+    vis.forEach(t=>ul.appendChild(row(t)));
+    sec.appendChild(ul);
+    if(canWrite&&db){
+      const f=document.createElement("form");f.className="add";
+      const i=document.createElement("input");i.id="add-"+r.id;i.placeholder="Добавить задачу";i.setAttribute("aria-label","Новая задача: "+r.name);
+      const b=document.createElement("button");b.type="submit";b.textContent="Добавить";
+      f.append(i,b);
+      f.onsubmit=async e=>{e.preventDefault();const v=i.value.trim();if(!v)return;i.value="";
+        const ord=Math.max(0,...all.map(t=>t.order||0))+1;
+        try{await db.collection("tasks").add({room:r.id,order:ord,title:v,phase:filter!=="all"?filter:"",src:"added",done:false})}catch(err){fail(err)}};
+      sec.appendChild(f);
+    }
+    root.appendChild(sec);
+  });
+}
+
+function row(t){
+  const li=document.createElement("li");li.className="task"+(t.done?" done":"");
+  const cb=document.createElement("input");cb.type="checkbox";cb.id="t-"+t.id;cb.checked=!!t.done;cb.disabled=!canWrite||!db;
+  cb.onchange=async()=>{try{await db.collection("tasks").doc(t.id).update({done:cb.checked})}catch(e){cb.checked=!cb.checked;fail(e)}};
+  const editable=canWrite&&!!db;
+  const body=document.createElement("div");body.className="tbody";
+  const tt=document.createElement("span");tt.className="ttl";tt.textContent=t.title;body.appendChild(tt);
+  if(editable) makeEditable(tt,t,"title",cb);
+  if(t.note||editable){const n=document.createElement("span");n.className="note";n.textContent=t.note||"";body.appendChild(n);if(editable)makeEditable(n,t,"note",cb)}
+  const tags=document.createElement("span");tags.className="tags";
+  if(t.phase&&PH[t.phase]){const g=document.createElement("span");g.className="tag ph-"+t.phase;g.textContent=PH[t.phase].replace(/^\d · /,"");tags.appendChild(g)}
+  if(t.src==="video"){const g=document.createElement("span");g.className="tag video";g.textContent="по видео";tags.appendChild(g)}
+  if(t.pickup){const g=document.createElement("span");g.className="tag pickup";g.textContent="забрать";tags.appendChild(g)}
+  if(editable){const eb=document.createElement("button");eb.type="button";eb.className="tagedit";eb.textContent="изменить метки";eb.setAttribute("aria-expanded",openTags===t.id);eb.onclick=()=>{openTags=openTags===t.id?null:t.id;render()};tags.appendChild(eb)}
+  if(tags.childNodes.length)body.appendChild(tags);
+  if(editable&&openTags===t.id) body.appendChild(tagPanel(t));
+  const del=document.createElement("button");del.className="del";del.type="button";del.title="Удалить задачу";del.setAttribute("aria-label","Удалить: "+t.title);del.textContent="×";
+  del.hidden=!canWrite||!db;
+  let armed=false;
+  del.onclick=async()=>{if(!armed){armed=true;del.textContent="удалить?";del.style.fontSize="12px";setTimeout(()=>{armed=false;del.textContent="×";del.style.fontSize=""},2500);return}
+    try{await db.collection("tasks").doc(t.id).delete()}catch(e){fail(e)}};
+  li.append(cb,body,del);return li;
+}
+let editing=0, pending=false, openTags=null;
+function tagPanel(t){
+  const p=document.createElement("div");p.className="tagpanel";
+  const save=async patch=>{try{await db.collection("tasks").doc(t.id).update(patch)}catch(e){fail(e)}};
+  const chip=(label,pressed,cls,on)=>{const b=document.createElement("button");b.type="button";b.className="chip"+(cls?" "+cls:"");b.textContent=label;b.setAttribute("aria-pressed",pressed);b.onclick=on;return b};
+  const g1=document.createElement("div");g1.className="grp";
+  const l1=document.createElement("span");l1.className="lbl";l1.textContent="Этап";g1.appendChild(l1);
+  PHASES.forEach(([k,l])=>g1.appendChild(chip(l.replace(/^\d · /,""),t.phase===k,"",()=>save({phase:k}))));
+  g1.appendChild(chip("без этапа",!t.phase||!PH[t.phase],"",()=>save({phase:""})));
+  const g2=document.createElement("div");g2.className="grp";
+  const l2=document.createElement("span");l2.className="lbl";l2.textContent="Метки";g2.appendChild(l2);
+  g2.appendChild(chip("забрать",!!t.pickup,"pickup",()=>save({pickup:!t.pickup})));
+  if(t.src==="video") g2.appendChild(chip("убрать «по видео»",false,"",()=>save({src:"added"})));
+  const c=document.createElement("button");c.type="button";c.className="close";c.textContent="Готово";c.onclick=()=>{openTags=null;render()};
+  p.append(g1,g2,c);return p;
+}
+function makeEditable(el,t,field,cb){
+  el.contentEditable="true";el.spellcheck=true;el.setAttribute("role","textbox");
+  el.setAttribute("aria-label",field==="title"?"Название задачи":"Заметка к задаче");
+  const orig=t[field]||"";
+  el.addEventListener("focus",()=>{editing++});
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter"&&(field==="title"||!e.shiftKey)){e.preventDefault();el.blur()}
+    if(e.key==="Escape"){el.textContent=orig;el.blur()}
+  });
+  el.addEventListener("paste",e=>{e.preventDefault();const s=(e.clipboardData||window.clipboardData).getData("text");document.execCommand("insertText",false,s.replace(/\s+/g," "))});
+  el.addEventListener("blur",async()=>{
+    editing=Math.max(0,editing-1);
+    let v=el.textContent.replace(/\s+/g," ").trim();
+    if(field==="title"&&!v){el.textContent=orig;v=orig}
+    else el.textContent=v;
+    if(v!==orig){
+      try{await db.collection("tasks").doc(t.id).update(field==="note"&&!v?{note:""}:{[field]:v});$("#status").textContent="Сохранено"}catch(e){el.textContent=orig;fail(e)}
+    }
+    if(!editing&&pending){pending=false;render()}
+  });
+}
+function fail(e){const c=e&&e.code;
+  if(c==="invalid_argument"){canWrite=false;$("#status").textContent="У тебя доступ только на просмотр: отмечать задачи может владелец или участник с правом редактирования.";render();return}
+  if(c==="quota_exceeded"){$("#status").textContent="Хранилище заполнено: удали лишние задачи, чтобы добавить новые.";return}
+  $("#status").textContent="Не сохранилось, попробуй ещё раз.";}
+
+const FIREBASE_CONFIG=window.FIREBASE_CONFIG;
+const BOARD=(location.hash||"").replace(/^#/,"");
+function delFix(p){const o={};for(const k in p){o[k]=(p[k]&&typeof p[k]==="object"&&p[k].__delete__)?firebase.firestore.FieldValue.delete():p[k]}return o}
+function showMsg(t){loading=false;tasks=[];const r=$("#rooms");r.textContent="";const e=document.createElement("div");e.className="empty";e.textContent=t;r.appendChild(e)}
+if(!BOARD||BOARD.length<24){showMsg("Открой страницу по полной ссылке с ключом после знака #. Без ключа список не загрузить.")}
+else if(!window.firebase||!FIREBASE_CONFIG){showMsg("Не загрузилась библиотека Firebase. Проверь интернет и обнови страницу.")}
+else{
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const fs=firebase.firestore();
+  fs.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+  const col=fs.collection("boards").doc(BOARD).collection("tasks");
+  db={fs,collection:()=>({
+    add:d=>col.add(d),
+    doc:id=>({update:p=>col.doc(id).update(delFix(p)),delete:()=>col.doc(id).delete()}),
+    onSnapshot:(cb,err)=>col.onSnapshot(cb,err)})};
+  window.importTasks=async obj=>{
+    const entries=Array.isArray(obj)?obj.map((d,i)=>[d.id||("i"+i),d]):Object.entries(obj);
+    for(let i=0;i<entries.length;i+=400){const bt=fs.batch();entries.slice(i,i+400).forEach(([id,d])=>{const c={...d};delete c.id;bt.set(col.doc(id),c)});await bt.commit()}
+  };
+  col.onSnapshot(s=>{tasks=s.docs.map(d=>({id:d.id,...d.data()}));loading=false;render();$("#importbox").hidden=tasks.length>0;$("#status").textContent=s.metadata.fromCache?"Нет связи: показываю сохранённую копию, изменения отправятся, когда появится интернет.":""},
+    e=>{loading=false;render();$("#status").textContent=e.code==="permission-denied"?"Нет доступа к списку: проверь ключ в ссылке.":"Не удалось загрузить список: "+e.message});
+}
+document.getElementById("importfile").addEventListener("change",async ev=>{
+  const f=ev.target.files[0];if(!f||!window.importTasks)return;
+  try{await window.importTasks(JSON.parse(await f.text()));$("#status").textContent="Задачи загружены."}catch(e){$("#status").textContent="Файл не подошёл: "+e.message}
+});
+</script>
+
+</body>
+</html>
